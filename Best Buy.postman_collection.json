@@ -1,0 +1,402 @@
+{
+	"info": {
+		"_postman_id": "1842ee1c-059b-463e-9249-e223e8815fbc",
+		"name": "Best Buy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[GET][PRODUCTS]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Number of records almost is 50\", function () {",
+							"  ",
+							"    pm.expect(jsonData.total).to.be.at.least(47000);",
+							"    pm.expect(jsonData.total).to.be.at.most(53000);",
+							"",
+							"});",
+							"pm.test(\"Number of records returned equal to limit\",function(){",
+							"    pm.expect(jsonData.data.length).to.eql(20)",
+							"    pm.expect(jsonData.limit).to.eql(20)",
+							"})",
+							"pm.test(\"Number of skipped records is 20\",function(){",
+							"    pm.expect(jsonData.skip).to.eql(20)",
+							"})",
+							"const schema = {",
+							"    \"type\": \"object\",",
+							"    \"properties\":{",
+							"        \"total\":{\"type\":\"number\"},",
+							"        \"limit\":{\"type\":\"number\"},",
+							"        \"skip\":{\"type\":\"number\"},",
+							"        \"data\":{\"type\":\"array\"}",
+							"        }",
+							"    };",
+							"pm.test(\"Validate Response Schema \", function () {",
+							"      pm.response.to.have.jsonSchema(schema);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3030/products?$limit=20&$skip=20",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products"
+					],
+					"query": [
+						{
+							"key": "$limit",
+							"value": "20"
+						},
+						{
+							"key": "$skip",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[GET][PRODUCT][ID][SUCCESS]",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3030/products/123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products",
+						"123"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[POST][PRODUCTS][FAILURE]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Errors missing properties\", function () {",
+							"    pm.expect(pm.response.json().errors).to.eql([\"should have required property 'type'\", \"should have required property 'upc'\", \"should have required property 'description'\", \"should have required property 'model'\"])",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\":\"something\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[POST][PRODUCTS][SUCCESS]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body contains new product's name\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"new product\");",
+							"});",
+							"pm.test(\"new id created for product\", function () {",
+							"    pm.expect(parseInt(pm.response.json().id)).to.greaterThan(0)",
+							"});",
+							"const schema = {",
+							"    \"type\": \"object\",",
+							"    };",
+							"pm.test('Schema is valid', function () {",
+							"    pm.expect(tv4.validate(pm.response, schema)).to.be.true;",
+							"    ",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\":\"new product\",\"type\":\"new products type\",\n\"upc\":\"upc\",\"description\":\"description of new product\",\n\"model\":\"model number\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[POST][PRODUCTS][WRONG PROPERTIES]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"wrong_property\", function () {",
+							"    pm.expect(pm.response.text()).to.include( \"should NOT have additional properties: 'wrong_property'\");",
+							"});",
+							"pm.test(\"Shipping not number \", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"shipping' should be number\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\":\"new product\",\"wrong_property\":\"something not correct\",\"type\":\"new products type\",\n\"upc\":\"uaaaaaaapc\",\"description\":\"description of new product\",\n\"model\":\"model number\",\"shipping\":\"dsads\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[DELETE][PRODUCTS][SUCCESS]",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.sendRequest(\"http://localhost:3030/products?$limit=1\", function (err, response) {",
+							"    var idToDelete=response.json().data[0].id;",
+							"    pm.environment.set(\"productToDelete\",idToDelete);",
+							"",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Body contains delete product's id\", function () {",
+							"    var deletedId=pm.environment.get(\"productToDelete\");",
+							"    pm.expect(pm.response.text()).to.include('\"id\":'+deletedId);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:3030/products/{{productToDelete}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products",
+						"{{productToDelete}}"
+					],
+					"query": [
+						{
+							"key": "productToDelete",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[DELETE][PRODUCT][FAIL]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Body contains delete product's id\", function () {",
+							"    var deletedId=pm.environment.get(\"productToDelete\");",
+							"    pm.expect(pm.response.text()).to.include(\"No record found for id '123'\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3030/products/123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products",
+						"123"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[patch][product]",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"",
+							"pm.test(\"Your test name\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"TEST\");",
+							"});",
+							"",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"TEST\",\n  \"type\": \"TEST\",\n  \"price\": 1,\n  \"shipping\": 2,\n  \"upc\": \"string\",\n  \"description\": \"string\",\n  \"manufacturer\": \"string\",\n  \"model\": \"string\",\n  \"url\": \"string\",\n  \"image\": \"string\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3030/products/1003214",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"products",
+						"1003214"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
